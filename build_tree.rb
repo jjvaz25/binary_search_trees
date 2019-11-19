@@ -62,9 +62,30 @@ class Tree
       end
     end
   end
-end
+
+  def find(value, root = @root)
+    node_to_find = Node.new(value)
+    return nil if root == nil
+    if node_to_find.value == root.value
+      return root
+    elsif node_to_find.value < root.value #search the left children
+      root = root.left_child
+      find(value, root)
+    else #if node_to_find.value > root.value -- search the right children
+      root = root.right_child
+      find(value, root)
+    end
+
+  end
+
+end #end class
 
 tree = Tree.new([1, 7, 4, 23, 8, 9, 4, 3, 5, 7, 9, 67, 6345, 324])
 tree.build_tree
 tree.to_s
+p tree.root
+puts ""
+#p tree.find(1) #correct return!
+p tree.find(3)
+
 
