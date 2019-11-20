@@ -97,21 +97,76 @@ class Tree
     end
   end
 
+  def levelorder(node = root) #prints data in BFS
+    queue = []
+    queue.push(node)
+    while !queue.empty?
+      current = queue.shift
+      yield(current) 
+      if !current.left.nil?
+        queue.push(current.left)
+      end
+      if !current.right.nil?
+        queue.push(current.right)
+      end 
+    end
+  end
+
+  def preorder(node = root, result = [], &block)
+    return if node.nil?
+    block.call(node)
+    preorder(node.left, &block)
+    preorder(node.right, &block)
+  end
+
+  def inorder(node = root, result = [], &block) #visits left subtree, root, then right subtree
+    return if node.nil?
+    inorder(node.left, &block)
+    block.call(node)
+    inorder(node.right, &block)
+  end
+
+  def postorder(node = root, result = [], &block) #visits leftsubtree, rightsubtree, then root
+    return if node.nil?
+    inorder(node.left, &block)
+    inorder(node.right, &block)
+    block.call(node)
+  end
+
   def pretty_print(node = root, prefix="", is_left = true)
     pretty_print(node.right, "#{prefix}#{is_left ? "│   " : "    "}", false) if node.right
     puts "#{prefix}#{is_left ? "└── " : "┌── "}#{node.data.to_s}"
     pretty_print(node.left, "#{prefix}#{is_left ? "    " : "│   "}", true) if node.left
   end
 
+  def print_dump
+    print_proc = Proc.new do |node|
+      print "#{node.data} "
+    end
+
+    puts "#{levelorder(&print_proc)} - levelorder iterative"
+    puts "#{inorder(&print_proc)} - inorder"
+    puts "#{preorder(&print_proc)} - preorder"
+    puts "#{postorder(&print_proc)} - postorder"
+    # puts "#{postorder_meta(&print_proc)} - postorder_meta"
+  end
+
 end #class end
 
+
 tree = Tree.new([1, 7, 4, 23, 8, 9, 4, 3, 5, 7, 9, 67, 6345, 324])
+# tree.pretty_print
+# p tree.find(100000) #CORRECT returns nil
+# p tree.find(5) #CORRECT return
+# tree.insert(24) #CORRECT return
+# puts "\n\n _____________AFTER INSERTS____________\n\n"
+# tree.pretty_print
+# tree.delete(24)
+# puts "\n\n _____________AFTER DELETES____________\n\n"
 tree.pretty_print
-p tree.find(100000) #CORRECT returns nil
-p tree.find(5) #CORRECT return
-tree.insert(24) #CORRECT return
-puts "\n\n _____________AFTER INSERTS____________\n\n"
-tree.pretty_print
-tree.delete(24)
-puts "\n\n _____________AFTER DELETES____________\n\n"
-tree.pretty_print
+puts "\n\n\n"
+#tree.levelorder{ |node| puts "#{node.data}" }
+puts ""
+tree.print_dump
+
+
