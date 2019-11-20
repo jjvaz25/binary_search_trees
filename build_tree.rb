@@ -1,114 +1,117 @@
-
+puts "\n\nTree initialized \n\n"
 class Node
-  attr_accessor :value, :left_child, :right_child, :parent
+  include Comparable
+  attr_accessor :data, :left, :right, :parent
 
-  def initialize(value)
-    @value = value
-    @left_child = nil
-    @right_child = nil
-    @parent = nil
+  def initialize(data)
+    @data = data
+    @left = left
+    @right = right
   end
 
-end
-
-
-class Tree 
-  attr_accessor :array, :root
-
-  def initialize (array)
-    @array = array.uniq
-    @root = nil
+  def <=>(other)
+    data <=> other.data
   end
 
-  def to_s(current = @root, indent = "   ")
-    if current == @root
-      puts "\n\nROOT: #{@root.value}"
-    end
-    indent += "  "
-    if current.left_child != nil
-      puts "#{indent}L: #{current.left_child.value}"
-      to_s(current.left_child, indent)
-    end
-    if current.right_child != nil
-      puts "#{indent}R: #{current.right_child.value}"
-      to_s(current.right_child, indent)
-    end
+  def leaf?
+    left.nil? && right.nil?
   end
 
-  def build_tree
-    array = @array
-    @root = Node.new(array.shift)
-    while array.size != 0
-      current_node = Node.new(array.shift)
-      add_node(@root, current_node)
-    end
-    @root
+  def single_parent?
+    left.nil? != right.nil?
   end
-  
-  def add_node(root, new_node)
-    if root.value > new_node.value 
-      if root.left_child == nil 
-        root.left_child = new_node
-        new_node.parent = root
-      else 
-        add_node(root.left_child, new_node)
+
+end #class end
+
+class Tree
+  attr_reader :root
+
+  def initialize(array)
+    array = Array(array)
+    array.sort!
+    array.uniq! #[1, 3, 4, 5, 7, 8, 9, 23, 67, 324, 6345]
+    @root = build_tree(array)
+  end
+
+  def build_tree(array)
+    return nil if array.empty?
+    root_index = (array.size - 1) / 2
+    root_node = Node.new(array[root_index])
+    root_node.left = build_tree(array[0...root_index])
+    root_node.right = build_tree(array[(root_index + 1)..-1])
+    root_node
+  end
+
+  def insert(value, node = root)
+    #return node = Node.new(value) if node.nil?
+    if value < node.data
+      if node.left.nil?
+        node.left = Node.new(value)
+      else
+        insert(value, node.left)
       end
-    else 
-      if root.right_child == nil 
-        root.right_child = new_node
-        new_node.parent = root
-      else 
-        add_node(root.right_child, new_node)
+    else
+      if node.right.nil?
+        node.right = Node.new(value)
+      else
+        insert(value, node.right)
       end
     end
   end
 
-  def find(value, root = @root)
-    node_to_find = Node.new(value)
-    return nil if root == nil
-    if node_to_find.value == root.value
-      return root
-    elsif node_to_find.value < root.value #search the left children
-      root = root.left_child
-      find(value, root)
-    else #if node_to_find.value > root.value -- search the right children
-      root = root.right_child
-      find(value, root)
+  def delete(value, node = root)
+    return node if node.nil?
+
+    if value < node.data
+      node.left = delete(value, node.left)
+    elsif value > node.data
+      node.right = delete(value, node.right)
+    else
+      if node.leaf?
+        return nil
+      elsif node.single_parent?
+        return node.left || node.right
+      end
+      temp = min_value_node(node.right)
+      node.data = temp.data
+      node.right = delete(temp.data, node.right)
+    end
+    node
+  end
+
+  def min_value_node(node = root)
+    current = node
+    until current.left.nil?
+      current = current.left
+    end
+    current
+  end
+
+  def find(value, node = root)
+    return nil if node.nil?
+    return node if node.data == value
+    if value < node.data
+      find(value, node.left)
+    else
+      find(value, node.right)
     end
   end
 
-  def insert(value, root = @root)
-    p node_to_insert = Node.new(value)
-    add_node(@root, node_to_insert)
-    # if root == nil #if the tree is empty insert this node as the root
-    #   p "the root is nil"
-    #   p root = node_to_insert
-    # elsif node_to_insert.value < root.value #look to left children
-    #   puts "the desired inserted value #{node_to_insert.value} is less than root value"
-    #   new_root = root.left_child
-    #   insert(value, new_root)
-    # else #node_to_insert.value > root.valye look to right children
-    #   root = root.right_child
-    #   insert(value, root)
-    # end
+  def pretty_print(node = root, prefix="", is_left = true)
+    pretty_print(node.right, "#{prefix}#{is_left ? "│   " : "    "}", false) if node.right
+    puts "#{prefix}#{is_left ? "└── " : "┌── "}#{node.data.to_s}"
+    pretty_print(node.left, "#{prefix}#{is_left ? "    " : "│   "}", true) if node.left
   end
 
-end #end class
-
-#unique_array = [1, 7, 4, 23, 8, 9, 3, 5, 67, 6345, 324]
+end #class end
 
 tree = Tree.new([1, 7, 4, 23, 8, 9, 4, 3, 5, 7, 9, 67, 6345, 324])
-p tree.build_tree
-puts "______________________"
-tree.to_s
-puts ""
-#print "searching for value 200 (expect nil): " 
-#p tree.find(200) #correct return
-#p tree.find(1) #correct return
-#p tree.find(3) #correct return
-#p tree.insert(10, nil) #correct return
-tree.insert(0) #correct return, left child of root/1
-tree.insert(20) #correct return, right child of 9
-tree.to_s
-puts "\n\n_______AFTER INSERTS______________\n\n"
-
+tree.pretty_print
+p tree.find(100000) #CORRECT returns nil
+p tree.find(5) #CORRECT return
+tree.insert(24) #CORRECT return
+puts "\n\n _____________AFTER INSERTS____________\n\n"
+tree.pretty_print
+tree.delete(24)
+puts "\n\n _____________AFTER DELETES____________\n\n"
+tree.pretty_print
