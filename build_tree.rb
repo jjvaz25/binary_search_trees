@@ -148,7 +148,6 @@ class Tree
     puts "#{inorder(&print_proc)} - inorder"
     puts "#{preorder(&print_proc)} - preorder"
     puts "#{postorder(&print_proc)} - postorder"
-    # puts "#{postorder_meta(&print_proc)} - postorder_meta"
   end
 
 end #class end
