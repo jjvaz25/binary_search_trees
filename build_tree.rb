@@ -43,7 +43,6 @@ class Tree
   end
 
   def insert(value, node = root)
-    #return node = Node.new(value) if node.nil?
     if value < node.data
       if node.left.nil?
         node.left = Node.new(value)
